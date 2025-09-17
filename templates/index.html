@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jal-Vistaar AI Assistant</title>
+    <link rel="stylesheet" href="../static/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gray-100 font-sans antialiased">
+    <div id="chat-container" class="flex flex-col h-screen max-w-4xl mx-auto bg-white shadow-2xl rounded-lg overflow-hidden">
+        
+        <!-- Header -->
+        <header class="bg-blue-600 text-white p-4 shadow-md z-10">
+            <h1 class="text-2xl font-bold text-center">Jal-Vistaar AI Assistant</h1>
+            <p class="text-center text-blue-100 text-sm">Your intelligent guide to India's groundwater resources</p>
+        </header>
+
+        <!-- Configuration Bar -->
+        <div class="p-3 bg-gray-50 border-b border-gray-200 flex items-center justify-center space-x-4 md:space-x-6">
+            <div class="flex items-center space-x-2">
+                <label for="persona" class="text-sm font-medium text-gray-700">I am a:</label>
+                <select id="persona" name="persona" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md shadow-sm">
+                    <option>Civilian</option>
+                    <option>Farmer</option>
+                    <option>Policymaker</option>
+                    <option>Scientist</option>
+                    <option>Real-Estate Agent</option>
+                </select>
+            </div>
+            <div class="flex items-center space-x-2">
+                <label for="language" class="text-sm font-medium text-gray-700">Language:</label>
+                <select id="language" name="language" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md shadow-sm">
+                    <option>English</option>
+                    <option>Hindi</option>
+                    <option>Bengali</option>
+                    <option>Tamil</option>
+                    <option>Telugu</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Chat Messages -->
+        <div id="chat-messages" class="flex-1 p-6 overflow-y-auto space-y-6">
+            <!-- Initial Bot Message -->
+            <div class="flex items-start gap-3">
+                <div class="bg-blue-500 text-white p-2 rounded-full h-10 w-10 flex items-center justify-center font-bold text-lg flex-shrink-0">JV</div>
+                <div class="bg-gray-200 text-gray-800 p-4 rounded-lg rounded-tl-none max-w-xl shadow">
+                    <p>Welcome to Jal-Vistaar! I can help you with groundwater data. Please select your role and language, then ask me a question below. For example: "Compare groundwater extraction in Punjab and Haryana."</p>
+                </div>
+            </div>
+            <!-- Dynamic messages will be appended here -->
+        </div>
+        
+        <!-- Input Form -->
+        <footer class="bg-white border-t border-gray-200 p-4">
+            <form id="chat-form" class="flex items-center space-x-3">
+                <input type="text" id="user-input" placeholder="Ask a question about groundwater..." class="flex-1 w-full px-4 py-2 text-gray-700 bg-gray-100 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300" autocomplete="off">
+                <button type="submit" class="bg-blue-600 text-white rounded-full p-3 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-transform duration-200 transform hover:scale-105 disabled:bg-gray-400 disabled:cursor-not-allowed" id="send-button">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                </button>
+            </form>
+        </footer>
+    </div>
+    
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
+
