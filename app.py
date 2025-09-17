@@ -10,17 +10,16 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from dotenv import load_dotenv
 import traceback # Added for more detailed error logging
+import google.generativeai as genai
 
 # --- Configuration ---
 load_dotenv() # Load environment variables from a .env file
 
 # Make sure to set the OPENAI_API_KEY environment variable in your .env file
 try:
-    # Configure OpenAI client
-    client = openai.OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+    genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
 except KeyError:
-    print("FATAL: OPENAI_API_KEY environment variable not set.")
-    print("Please create a .env file and add the line: OPENAI_API_KEY='your-key-here'")
+    print("FATAL: GOOGLE_API_KEY environment variable not set.")
     exit()
 
 # Ensure the directory for generated charts exists
@@ -35,14 +34,14 @@ app = Flask(__name__)
 # --- Data Loading ---
 df = None
 try:
-    csv_filename = 'groundwater_data.xlsx'
+    csv_filename = 'groundwater_data_cleaned.xlsx'
     csv_path = os.path.join(os.path.dirname(__file__), csv_filename)
     
     # **FIXED CODE**: Added quoting=3 to tell the parser to ignore quote characters, resolving the final parsing issue.
     df = pd.read_excel(csv_path)
     
     # Basic data cleaning
-    df.rename(columns={'Stage of Ground Water Extraction (%)': 'ExtractionPercentage'}, inplace=True)
+    df.rename(columns={'Stage of Ground Water Extraction (%)_Total': 'ExtractionPercentage'}, inplace=True)
     df['ExtractionPercentage'] = pd.to_numeric(df['ExtractionPercentage'], errors='coerce')
     df.dropna(subset=['ExtractionPercentage', 'STATE', 'DISTRICT', 'Year'], inplace=True)
     
@@ -159,23 +158,28 @@ def chat():
         image_url = generate_comparison_graph(relevant_data, prompt)
         data_json_str = relevant_data.to_json(orient='records')
 
-        system_prompt = f"""You are "Jal-Vistaar", an expert AI assistant for INGRES.
+        # --- MODIFIED: System prompt and API Call ---
+        # The system prompt concept works slightly differently. We combine it with the user prompt for the API call.
+        full_prompt = f"""You are "Jal-Vistaar", an expert AI assistant for INGRES.
         **CRITICAL INSTRUCTIONS:**
         1.  **Data Source:** Base your answers STRICTLY on the following JSON data: {data_json_str}. Do not use external knowledge. If the data is empty or irrelevant, state that you couldn't find specific data for the query.
         2.  **User Persona:** Tailor your response for a '{persona}'. For example, a farmer needs practical advice, while a scientist needs technical details.
         3.  **Language:** Respond in '{language}'.
         4.  **Stage of Extraction Categories:** Use these rules for 'ExtractionPercentage': <= 70% is 'Safe'; > 70% and <= 90% is 'Semi-Critical'; > 90% and <= 100% is 'Critical'; > 100% is 'Over-Exploited'.
         5.  **Be Conversational:** Acknowledge the user's persona and question. If a graph has been generated, refer to it in your answer.
+
+        **User's Question:** {prompt}
         """
+
+        # NEW: Instantiate the Gemini model
+        # You can choose different models, like 'gemini-1.0-pro' or 'gemini-1.5-flash-latest'
+        model = genai.GenerativeModel('gemini-1.5-flash-latest')
         
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": prompt}
-            ]
-        )
-        response_text = response.choices[0].message.content
+        # NEW: Generate content using the new client and method
+        response = model.generate_content(full_prompt)
+        
+        # NEW: The way to access the response text is simpler
+        response_text = response.text
         
         return jsonify({
             'text': response_text,
@@ -183,9 +187,8 @@ def chat():
         })
 
     except Exception as e:
-        # **FIXED CODE**: Added detailed traceback logging to the terminal.
         print(f"An unexpected error occurred in the /chat route: {e}")
-        traceback.print_exc() # This will print the full error stack trace to your terminal
+        traceback.print_exc()
         return jsonify({'text': "An unexpected error occurred on the server. Please check the logs."}), 500
 
 if __name__ == '__main__':
